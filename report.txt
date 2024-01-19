@@ -1,0 +1,230 @@
+IVAN LIN 2057529809	PROJECT 3
+
+A description of the design of your data structures
+
+The main data structure used to hold the board is a 2d char array that is the dimension
+specified by the game constructer, it is in the board class
+
+empty space(water) is described by the char '.'
+
+a shot is described by the char 'X' or 'o' on that 2d array
+
+in game the data structure used is for ships, i used a private structure called "ship" that stores
+the length, id , symbol and name of the ship. these ships are then stored in an array with 
+the index corresponding to their Ids
+
+in board there is a data structure with an integer array that holds the ids of the ships
+to ensure they cant be used twice
+
+mediocre player and goodplayer both use a vector that stores the places they haev attacked
+as well as a vector that initializes the points in the cross that need to be attacked
+
+
+
+
+
+A prose description of your GoodPlayer's strategies for placing ships and
+recommending moves
+
+In terms of placing ships. I considered how the mediocre player plays. since the mediocre player
+plays by attackign random spots until hitting a cross, you should place all of the ships 
+in a diagonal pattern where going left and right from any point of that ship for 4 tiles wont
+hit another ship, that is my implementation for the placing of ships
+
+for recommending moves, good player uses a a different streategy, instead of picking random points
+goodplayer uses a checkerboard pattern since the length of teh smallest ship is 2, therefore
+you only actually need to check every other space assuming it has not been hit yet. As a result
+you can recommend attacks in state 1 as every other space and then use a cross to attack said ships.
+
+
+
+
+Pseudocode for non-trivial algorithms.
+
+
+
+BOARD CLASS
+
+placeship(Point topORLeft, int shipId, Direction dir)
+if the point is out of bounds, if the id is already used, or the length is longer than the 
+rows or cols
+return false
+if direction is horizontal
+loop through characyers of the board by the length of the ship by using a for loop that
+increments the columns
+if all of those points are empty, then you can do another for loop and place the ship using
+the ships char symbol
+if direction is vertical
+repeat again in the same manner
+
+unplaceShip(Point topOrLeft, int shipId, Direction dir)
+check the shipIds and ensure they are valid
+if direction is horizontal
+loop through that area by the ship length like in placeship and make sure all of the chars
+that were looped through are the char, if they arent then return false
+otherwise change those chars to the symbol
+if it is vertical you can do the same thing
+
+display(bool shotsOnly) const
+initally cout the 2 spaces
+then cout  the numbers from 0 to the numbers of colummns
+cout an endl
+initialize a counter to 0
+loop from 0 to the amount of rows there are in the game
+in each loop
+first cout a the counter
+cout a space
+increment the counter
+then loop from 0 to the amount of cols
+check the indexes at the spot and display what they contain accordingly
+make sure that if shotsonly is false then you will display the boat otherwise dont
+
+attack(Point p, bool& shotHit, bool& shipDestroyed, int& shipId)
+if the point is out of bounds
+ return false
+if the point already is 'o' or 'X'
+return false
+set a char equal to the point where the attack happened
+set shot hit to true
+set the point to 'X'
+then run 2 for loops in a cross from where the attack happened to check for that character
+if that character exists anywhere than shipdestroyed is false but if there is no more of that
+character left, then shipdestroyed = true
+
+allShipsDestroyed() const
+loop over the whole board
+if you see an '.' or 'X' or 'o'
+continue the loop,
+if you see anythign else, return false
+if you made it ot the end of the loop return true
+
+
+GAME CLASS
+
+addship
+initialize a ship
+set the memebers of that ship to the paramaters in teh function
+place that ship in the ship array created
+and increment the number of ships in the array
+
+play(Player* p1, Player* p2, Board& b1, Board& b2, bool shouldPause)
+first placeships for both layers in their respective boards
+while both boards stil have ships on them
+cout their names and display, if human make srue shots only is true
+attack the 2nd players board with the recommendedpoint from player1
+record the attack
+then check the conditions such as shothit shipdestroyed or valid shot and cout the line that corresponds
+then display again while checking for human player
+repeat for the 2nd player
+inside the while loop if either player wins you return the winner and cout a message with the winner
+
+
+PLAYER CLASS
+
+MEDIOCREPLAYER
+
+recurseAlgorithm(Board &b, int shipId)
+base case is if the shipid you are placing equals the numberofships
+you can return true
+loop over the board at every spot
+attempt to place a ship there vertically or horizontally,
+if you can then return true and call the function again but with teh shipId +1
+if you cannot
+unplace the ship
+and return false if you do
+
+placeShips(Board& b)
+while a counter does not equal 49
+block the board
+if the recursionalogrithm returns true then unblcok and return true
+otherwise
+increment the counter and
+unblock
+
+at the end of the while loop return false
+
+crossCellCreator(vector<Point>& vector1,Point a)
+for every single direction 4 spaces in that direction
+push the cell to the vector that stores the crosses only if they are valid cells and they havent been
+attacked already
+
+randomPointPicker()
+choose 2 random integers within the range of the rows and columns
+create a point with those 2 randomintegers
+while that point is already an attackedcell
+create 2 new random integers
+update the point with the 2 new random integers
+at the end of the while loop return the point
+
+
+MediocrePlayer::recommendAttack() //note the record function saves the results of teh attack to a member function inside mediocre player
+if the shot was hit and it was the first shot coming out of state 1
+then save that cell as the intial cellhit
+create the cross cells
+then go to state 2
+
+if shipwasdestroyed
+clear the crosscells
+change state to 1
+
+if player is in state 2 
+if the cells are empty
+go to state 1
+otherwise
+pick a random index of that vector
+return that point at the index
+erase that index from the vector
+and save that point to the attacked cells vector
+
+
+if the player is in state 1
+choose a random point that has not been attacked yet
+save that point to the attacked cells vector
+return that point
+
+GOODPLAYER 
+
+parityPointPicker()
+you have a variable that stores the size of the smallest ship
+for the size of the smallest ship
+you increment over the rows one by one but in the columnn you will increment by the size of
+the smallest ship but making sure to check you havent already attacked that spot yet
+return the point of the first index where you havent attacked , it should look like this
+
+.X.X.X.X.X
+X.X.X.X.X.
+.X.X.X.X.X
+X.X.X.X.X.
+.X.X.X.X.X
+X.X.X.X.X.
+.X.X.X.X.X
+X.X.X.X.X.
+
+
+pointPicker()
+you initialize a counter at 0
+everytime you destroy the ship it gets reset to 0
+for the counter 0-4 you attack left,4-8 attack right,8-12 attack up ,12-16 attack down
+everytime you attack you increment the counter, however if you encounter a spot that 
+is invalid you move on to the enxt direction
+
+recommendAttack() 
+in state 1 you choose a point from the paritypoint picker
+if you hit a boat, you go to state 2
+in state 2,
+you will shooot in a cross like the mediocre player by calling the point picker
+
+
+placeShips(Board& b)
+initialize the board like this usign pre specified points
+ ..........
+ ......SSS.
+ ..DDD.....
+ .....A....
+ .....A....
+ .....A....
+ .....A....
+ .....A....
+ .BBBB.....
+ ......PP..
+
